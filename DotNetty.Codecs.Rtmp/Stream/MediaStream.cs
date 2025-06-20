@@ -292,7 +292,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 					if (channel.IsActive && channel.IsWritable)
 						await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(EncodeMediaAsFlvTagAndPrevTagSize(msg).ToArray()));
 				}
-				catch(Exception ex) { }
+				catch(Exception) {  }
 				}
 		}
 

@@ -11,6 +11,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\DotNetty\DotNetty.Codecs.Http\DotNetty.Codecs.Http.csproj" />
     <ProjectReference Include="..\..\DotNetty\DotNetty.Codecs\DotNetty.Codecs.csproj" />
+    <ProjectReference Include="..\DotNetty.Codecs.Http\DotNetty.Codecs.Http.csproj" />
+    <ProjectReference Include="..\DotNetty.Codecs\DotNetty.Codecs.csproj" />
   </ItemGroup>
 
 </Project>

@@ -271,25 +271,30 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		{
 			logger.Info($"http flv subscriber : {channel.RemoteAddress} is added to stream :{_streamName}");
 			_httpFLvSubscribers.GetOrAdd(channel.RemoteAddress.ToString(), p => channel); ;
-            Memory<byte> meta = EncodeFlvHeaderAndMetadata();
+			Memory<byte> meta = EncodeFlvHeaderAndMetadata();
 			await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(meta.ToArray()));
 
 			_avcDecoderConfigurationRecord.Timestamp = _content[0].Timestamp;
-            Memory<byte> config = EncodeMediaAsFlvTagAndPrevTagSize(_avcDecoderConfigurationRecord);
+			Memory<byte> config = EncodeMediaAsFlvTagAndPrevTagSize(_avcDecoderConfigurationRecord);
 			await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(config.ToArray()));
 			if (_aacAudioSpecificConfig != null)
 			{
 				_aacAudioSpecificConfig.Timestamp = _content[0].Timestamp;
-                Memory<byte> aac = EncodeMediaAsFlvTagAndPrevTagSize(_aacAudioSpecificConfig);
+				Memory<byte> aac = EncodeMediaAsFlvTagAndPrevTagSize(_aacAudioSpecificConfig);
 				await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(aac.ToArray()));
 			}
 
 			var content1 = new List<AbstractRtmpMediaMessage>(_content);
 			foreach (var msg in content1)
-			{ 
-				if(channel.IsActive)
-				await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(EncodeMediaAsFlvTagAndPrevTagSize(msg).ToArray())); 
-			}
+			{
+				try
+				{
+					if (channel.IsActive && channel.IsWritable)
+						await channel.WriteAndFlushAsync(Unpooled.WrappedBuffer(EncodeMediaAsFlvTagAndPrevTagSize(msg).ToArray()));
+				}
+				catch(Exception ex) { }
+				}
+		}
 
 		}
 

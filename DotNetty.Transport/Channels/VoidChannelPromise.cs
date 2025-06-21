@@ -57,11 +57,11 @@ namespace DotNetty.Transport.Channels
 #if NET
                 static
 #endif
-                () =>   TaskUtil.FromException(Error),
+                () => TaskUtil.FromException(Error),
                         LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
-        public ValueTask ValueTask =>  new ValueTask(_task.Value);
+        public ValueTask ValueTask => new ValueTask(_task.Value);
 
         public bool IsVoid => true;
 
@@ -72,7 +72,7 @@ namespace DotNetty.Transport.Channels
         public bool IsFaulted => false;
 
         public bool IsCanceled => false;
-         
+
 
         Task IPromise.Task => _task.Value;
 
@@ -129,23 +129,23 @@ namespace DotNetty.Transport.Channels
 
         public IPromise Unvoid()
         {
-            var promise = new DefaultPromise();
+            var promise = new DefaultValueTaskPromise();
             if (_fireException)
             {
-                _ = promise.Task.ContinueWith(FireExceptionOnFailureAction, _channel, TaskContinuationOptions.ExecuteSynchronously);
+                _ = promise.ValueTask.FireExceptionOnFailure(_channel.Pipeline);
             }
             return promise;
         }
 
-        private static readonly Action<Task, object> FireExceptionOnFailureAction = (t, s) => FireExceptionOnFailure(t, s);
-        private static void FireExceptionOnFailure(Task t, object s)
-        {
-            var ch = (IChannel)s;
-            if (t.IsFaulted)// && ch.Registered)
-            {
-                _ = ch.Pipeline.FireExceptionCaught(t.Exception.InnerException);
-            }
-        }
+        //private static readonly Action<Task, object> FireExceptionOnFailureAction = (t, s) => FireExceptionOnFailure(t, s);
+        //private static void FireExceptionOnFailure(Task t, object s)
+        //{
+        //    var ch = (IChannel)s;
+        //    if (t.IsFaulted)// && ch.Registered)
+        //    {
+        //        _ = ch.Pipeline.FireExceptionCaught(t.Exception.InnerException);
+        //    }
+        //}
 
         private void FireException0(Exception cause)
         {

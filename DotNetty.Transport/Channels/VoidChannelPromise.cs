@@ -57,11 +57,11 @@ namespace DotNetty.Transport.Channels
 #if NET
                 static
 #endif
-                () => TaskUtil.FromException(Error),
+                () =>   TaskUtil.FromException(Error),
                         LazyThreadSafetyMode.ExecutionAndPublication);
         }
 
-        public ValueTask ValueTask => new ValueTask(_task.Value);
+        public ValueTask ValueTask =>  new ValueTask(_task.Value);
 
         public bool IsVoid => true;
 
@@ -72,7 +72,7 @@ namespace DotNetty.Transport.Channels
         public bool IsFaulted => false;
 
         public bool IsCanceled => false;
-
+         
 
         Task IPromise.Task => _task.Value;
 
@@ -132,7 +132,7 @@ namespace DotNetty.Transport.Channels
             var promise = new DefaultValueTaskPromise();
             if (_fireException)
             {
-                _ = promise.ValueTask.FireExceptionOnFailure(_channel.Pipeline);
+                _ = promise.ValueTask.FireExceptionOnFailure( _channel.Pipeline);
             }
             return promise;
         }

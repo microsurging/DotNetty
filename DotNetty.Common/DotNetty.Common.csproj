@@ -4,13 +4,13 @@
     <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
        <LangVersion>9.0</LangVersion>
     <IsPackable>true</IsPackable>
-    <PackageId>DotNetty.Common</PackageId>
+    <PackageId>NioDotNetty.Common</PackageId>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>DotNetty common routines</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: common routines</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <VersionPrefix>0.7.6</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Microsoft</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -20,7 +20,7 @@
     <AssemblyOriginatorKeyFile>../../DotNetty.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>False</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageTags>socket;tcp;protocol;netty;dotnetty;network</PackageTags>
+    <PackageTags>socket;tcp;protocol;netty;dotnetty;network;rtmp;</PackageTags>
     <PackageProjectUrl>https://github.com/Azure/DotNetty/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>

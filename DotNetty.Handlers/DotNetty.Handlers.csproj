@@ -4,12 +4,12 @@
     <TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
      <LangVersion>9.0</LangVersion>
-    <PackageId>DotNetty.Handlers</PackageId>
+    <PackageId>NioDotNetty.Handlers</PackageId>
     <Description>Application handlers for DotNetty</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: handlers</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <VersionPrefix>0.7.6</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Microsoft</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -18,7 +18,7 @@
     <AssemblyOriginatorKeyFile>../../DotNetty.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>False</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageTags>socket;tcp;protocol;netty;dotnetty;network;tls;ssl</PackageTags>
+    <PackageTags>socket;tcp;protocol;netty;dotnetty;network;tls;ssl;rtmp;</PackageTags>
     <PackageProjectUrl>https://github.com/Azure/DotNetty/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>

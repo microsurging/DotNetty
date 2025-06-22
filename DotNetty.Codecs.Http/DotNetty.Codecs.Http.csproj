@@ -4,12 +4,12 @@
     <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <LangVersion>9.0</LangVersion>
-    <PackageId>DotNetty.Codecs.Http</PackageId>
+    <PackageId>NioDotNetty.Codecs.Http</PackageId>
     <Description>Http codec for DotNetty</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: Http codec</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <VersionPrefix>0.7.6</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Microsoft</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

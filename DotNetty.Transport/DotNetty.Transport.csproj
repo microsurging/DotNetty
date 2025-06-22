@@ -4,12 +4,12 @@
     <TargetFrameworks>netstandard2.0;</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <LangVersion>9.0</LangVersion>
-    <PackageId>DotNetty.Transport</PackageId>
+    <PackageId>NioDotNetty.Transport</PackageId>
     <Description>Transport model in DotNetty</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: transport model</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <VersionPrefix>0.7.6</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Microsoft</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -18,7 +18,7 @@
     <AssemblyOriginatorKeyFile>../../DotNetty.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>False</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageTags>socket;tcp;udp;protocol;netty;dotnetty;network</PackageTags>
+    <PackageTags>socket;tcp;udp;protocol;netty;dotnetty;network;rtmp;</PackageTags>
     <PackageProjectUrl>https://github.com/Azure/DotNetty/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>

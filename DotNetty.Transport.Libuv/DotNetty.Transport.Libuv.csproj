@@ -3,13 +3,13 @@
   <PropertyGroup Label="NuGet">
     <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
-    <PackageId>DotNetty.Transport.Libuv</PackageId>
+    <PackageId>NioDotNetty.Transport.Libuv</PackageId>
        <LangVersion>9.0</LangVersion>
     <Description>Libuv transport model in DotNetty</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <AssemblyTitle>DotNetty: libuv transport model Experimental</AssemblyTitle>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <VersionPrefix>0.7.6</VersionPrefix>
+    <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Microsoft</Authors>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -19,7 +19,7 @@
     <AssemblyOriginatorKeyFile>../../DotNetty.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>False</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <PackageTags>socket;tcp;udp;protocol;netty;dotnetty;network</PackageTags>
+    <PackageTags>socket;tcp;udp;protocol;netty;dotnetty;network;rtmp;</PackageTags>
     <PackageProjectUrl>https://github.com/Azure/DotNetty/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>

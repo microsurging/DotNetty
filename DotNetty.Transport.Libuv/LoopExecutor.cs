@@ -129,10 +129,7 @@ namespace DotNetty.Transport.Libuv
                 executor => ((LoopExecutor)executor).StartLoop(cancellation), state,
                 cancellation.Token,
                 TaskCreationOptions.AttachedToParent,
-                loopExecutor.Scheduler);
-            //Loop processing is too fast and generates a large number of loopCoreAciton task schedulers.
-            //Using ManualResetEventSlim to process it is too late to wait, so it sleeps for 20ms
-            Task.Delay(TimeSpan.FromMilliseconds(20));
+                loopExecutor.Scheduler); 
         }
 
         private void StartLoop(CancellationTokenSource cancellation)

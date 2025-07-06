@@ -123,15 +123,19 @@ namespace DotNetty.Transport.Libuv
         private static void Run(object state)
         {
             var loopExecutor = (LoopExecutor)state;
-            loopExecutor.SetCurrentExecutor(loopExecutor); 
+            loopExecutor.SetCurrentExecutor(loopExecutor);
+            var cancellation = new CancellationTokenSource();
             _ = Task.Factory.StartNew(
-                executor => ((LoopExecutor)executor).StartLoop(), state,
-                CancellationToken.None,
+                executor => ((LoopExecutor)executor).StartLoop(cancellation), state,
+                cancellation.Token,
                 TaskCreationOptions.AttachedToParent,
                 loopExecutor.Scheduler);
+            //Loop processing is too fast and generates a large number of loopCoreAciton task schedulers.
+            //Using ManualResetEventSlim to process it is too late to wait, so it sleeps for 20ms
+            Task.Delay(TimeSpan.FromMilliseconds(20));
         }
 
-        private void StartLoop()
+        private void StartLoop(CancellationTokenSource cancellation)
         {
             IntPtr handle = _loop.Handle;
             try
@@ -164,6 +168,14 @@ namespace DotNetty.Transport.Libuv
             catch (Exception exc)
             {
                 _ = TerminationCompletionSource.TrySetException(exc);
+            }
+            finally
+            {
+                if (IsShuttingDown)
+                {
+                    cancellation.Cancel();
+                    cancellation.Dispose();
+                }
             }
         }
 

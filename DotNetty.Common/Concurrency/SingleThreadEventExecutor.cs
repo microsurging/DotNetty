@@ -270,7 +270,8 @@ namespace DotNetty.Common.Concurrency
         {
             SetCurrentExecutor(this);
             var cancellation = new CancellationTokenSource();
-            _ = Task.Factory.StartNew(() => _loopCoreAciton(cancellation), cancellation.Token, TaskCreationOptions.None, _taskScheduler);
+            //high CPU consumption tasks, running RunAllTasks in a dead loop, set TaskCreationOptions.LongRunning to avoid running out of thread pool resources. ‌‌
+            _ = Task.Factory.StartNew(() => _loopCoreAciton(cancellation), cancellation.Token, TaskCreationOptions.LongRunning, _taskScheduler);
             //Loop processing is too fast and generates a large number of loopCoreAciton task schedulers.
             //Using ManualResetEventSlim to process it is too late to wait, Using threadLock, LoopCore task schedulers will be released after execution
             _threadLock.Wait();

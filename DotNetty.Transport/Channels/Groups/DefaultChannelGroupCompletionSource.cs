@@ -32,6 +32,7 @@ namespace DotNetty.Transport.Channels.Groups
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Threading;
     using System.Threading.Tasks;
     using DotNetty.Common.Concurrency;
     using DotNetty.Common.Utilities;
@@ -39,6 +40,7 @@ namespace DotNetty.Transport.Channels.Groups
     public class DefaultChannelGroupCompletionSource : ManualResetValueTaskSource<int>, IChannelGroupTaskCompletionSource
     {
         private readonly Dictionary<IChannel, Task> _futures;
+          private int _lock;
         private int _failureCount;
         private int _successCount;
 
@@ -56,27 +58,11 @@ namespace DotNetty.Transport.Channels.Groups
             Group = group;
             _futures = new Dictionary<IChannel, Task>(ChannelComparer.Default);
 #pragma warning disable IDE0039 // 使用本地函数
-            Action<Task> continueAction = (Task x) =>
+            Action<Task> continueAction = async (Task x) =>
 #pragma warning restore IDE0039 // 使用本地函数
             {
-                bool success = x.IsSuccess();
-                bool callSetDone;
-                lock (this)
-                {
-                    if (success)
-                    {
-                        _successCount++;
-                    }
-                    else
-                    {
-                        _failureCount++;
-                    }
-
-                    callSetDone = _successCount + _failureCount == _futures.Count;
-                    Debug.Assert(_successCount + _failureCount <= _futures.Count);
-                }
-
-                if (callSetDone)
+                bool success = x.IsSuccess(); 
+                if (GetCallSetDone(success))
                 {
                     if (_failureCount > 0)
                     {
@@ -85,6 +71,7 @@ namespace DotNetty.Transport.Channels.Groups
                         {
                             IChannel c = ft.Key;
                             Task f = ft.Value;
+                            await f;
                             if (f.IsFailure())
                             {
                                 if (f.Exception is object)
@@ -115,6 +102,34 @@ namespace DotNetty.Transport.Channels.Groups
         }
 
         public IChannelGroup Group { get; }
+
+        public bool GetCallSetDone(bool success)
+        {
+            bool callSetDone = false;
+            while (true)
+            {
+                if (Interlocked.Exchange(ref _lock, 1) != 0)
+                {
+                    default(SpinWait).SpinOnce();
+                    continue;
+                }
+
+                if (success)
+                {
+                    _successCount++;
+                }
+                else
+                {
+                    _failureCount++;
+                }
+
+                callSetDone = _successCount + _failureCount == _futures.Count;
+                Debug.Assert(_successCount + _failureCount <= _futures.Count);
+                Interlocked.Exchange(ref _lock, 0);
+
+                return callSetDone;
+            }
+        }
 
         public Task Find(IChannel channel) => _futures[channel];
 

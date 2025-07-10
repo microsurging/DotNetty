@@ -59,7 +59,7 @@ namespace DotNetty.Transport.Channels.Groups
             var failed = new List<KeyValuePair<IChannel, Exception>>();
             _futures = new Dictionary<IChannel, Task>(ChannelComparer.Default);
 #pragma warning disable IDE0039 // 使用本地函数
-            Action<Task,object> continueAction = async (Task x, object obj) =>
+            Action<Task,object> continueAction =  (Task x, object obj) =>
 #pragma warning restore IDE0039 // 使用本地函数
             {
                 var channel=obj as IChannel;
@@ -82,6 +82,8 @@ namespace DotNetty.Transport.Channels.Groups
                         _ = SetResult(0);
                     }
                 }
+                //the task does not need to be call, so  Dispose it
+                x.Dispose();
             };
             foreach (KeyValuePair<IChannel, Task> pair in futures)
             {

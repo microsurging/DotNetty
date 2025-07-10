@@ -55,32 +55,27 @@ namespace DotNetty.Transport.Channels.Groups
             if (group is null) { ThrowHelper.ThrowArgumentNullException(ExceptionArgument.group); }
             if (futures is null) { ThrowHelper.ThrowArgumentNullException(ExceptionArgument.futures); }
 
-            Group = group;
+            Group = group; 
+            var failed = new List<KeyValuePair<IChannel, Exception>>();
             _futures = new Dictionary<IChannel, Task>(ChannelComparer.Default);
 #pragma warning disable IDE0039 // 使用本地函数
-            Action<Task> continueAction = async (Task x) =>
+            Action<Task,object> continueAction = async (Task x, object obj) =>
 #pragma warning restore IDE0039 // 使用本地函数
             {
+                var channel=obj as IChannel;
                 bool success = x.IsSuccess(); 
                 if (GetCallSetDone(success))
                 {
                     if (_failureCount > 0)
                     {
-                        var failed = new List<KeyValuePair<IChannel, Exception>>();
-                        foreach (KeyValuePair<IChannel, Task> ft in _futures)
+                        if (x.IsFailure())
                         {
-                            IChannel c = ft.Key;
-                            Task f = ft.Value;
-                            await f;
-                            if (f.IsFailure())
+                            if (x.Exception is object)
                             {
-                                if (f.Exception is object)
-                                {
-                                    failed.Add(new KeyValuePair<IChannel, Exception>(c, f.Exception.InnerException));
-                                }
+                                failed.Add(new KeyValuePair<IChannel, Exception>(channel, x.Exception.InnerException));
                             }
                         }
-                         SetException(new ChannelGroupException(failed));
+                        SetException(new ChannelGroupException(failed));
                     }
                     else
                     {
@@ -91,7 +86,7 @@ namespace DotNetty.Transport.Channels.Groups
             foreach (KeyValuePair<IChannel, Task> pair in futures)
             {
                 _futures.Add(pair.Key, pair.Value);
-                _ = pair.Value.ContinueWith(continueAction);
+                _ =  pair.Value.ContinueWith(continueAction, pair.Key);
             }
 
             // Done on arrival?

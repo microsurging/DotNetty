@@ -88,7 +88,7 @@ namespace DotNetty.Transport.Channels.Groups
             foreach (KeyValuePair<IChannel, Task> pair in futures)
             {
                 _futures.Add(pair.Key, pair.Value);
-                _ =  pair.Value.ContinueWith(continueAction, pair.Key);
+                _ = pair.Value.ContinueWith(continueAction, pair.Key);
             }
 
             // Done on arrival?

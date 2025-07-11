@@ -107,11 +107,7 @@ namespace DotNetty.Transport.Channels
                 else
                 {
                     if (ConfirmShutdown()) { break; }
-                }
-                //Running ManualResetEventSlim for a long time may result in memory leaks.
-                //When there are no tasks, you can dispose of them and re instance ManualResetEventSlim
-                _emptyEvent.Dispose();
-                _emptyEvent = new ManualResetEventSlim(false, 1);
+                } 
             }
         }
 

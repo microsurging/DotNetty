@@ -44,7 +44,7 @@ namespace DotNetty.Transport.Channels
         protected static readonly TimeSpan DefaultBreakoutInterval = TimeSpan.FromMilliseconds(100);
 
         private readonly long _breakoutNanosInterval;
-        private readonly ManualResetEventSlim _emptyEvent;
+        private  ManualResetEventSlim _emptyEvent;
 
         public SingleThreadEventLoop(IEventLoopGroup parent)
             : this(parent, DefaultBreakoutInterval)
@@ -108,6 +108,10 @@ namespace DotNetty.Transport.Channels
                 {
                     if (ConfirmShutdown()) { break; }
                 }
+                //Running ManualResetEventSlim for a long time may result in memory leaks.
+                //When there are no tasks, you can dispose of them and re instance ManualResetEventSlim
+                _emptyEvent.Dispose();
+                _emptyEvent = new ManualResetEventSlim(false, 1);
             }
         }
 

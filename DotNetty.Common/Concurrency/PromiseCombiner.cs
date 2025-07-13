@@ -152,7 +152,8 @@ namespace DotNetty.Common.Concurrency
         }
 
         private async void OperationComplete(Task future)
-        { 
+        {
+            await future;
             Debug.Assert(_executor.InEventLoop);
             ++_doneCount;
             if (future.IsFailure() && _cause is null)

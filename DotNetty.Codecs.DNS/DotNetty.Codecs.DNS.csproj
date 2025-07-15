@@ -19,7 +19,6 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DotNetty.Transport\DotNetty.Codecs\DotNetty.Codecs.csproj" />
-    <ProjectReference Include="..\..\DotNetty\DotNetty.Codecs\DotNetty.Codecs.csproj" />
+    <ProjectReference Include="..\DotNetty.Codecs\DotNetty.Codecs.csproj" />
   </ItemGroup>
 </Project>

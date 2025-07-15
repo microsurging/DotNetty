@@ -107,7 +107,7 @@ namespace DotNetty.Transport.Channels
                 else
                 {
                     if (ConfirmShutdown()) { break; }
-                } 
+                }
             }
         }
 

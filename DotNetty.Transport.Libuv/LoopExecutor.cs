@@ -124,15 +124,14 @@ namespace DotNetty.Transport.Libuv
         {
             var loopExecutor = (LoopExecutor)state;
             loopExecutor.SetCurrentExecutor(loopExecutor);
-            var cancellation = new CancellationTokenSource();
             _ = Task.Factory.StartNew(
-                executor => ((LoopExecutor)executor).StartLoop(cancellation), state,
-                cancellation.Token,
+                executor => ((LoopExecutor)executor).StartLoop(), state,
+                CancellationToken.None,
                 TaskCreationOptions.AttachedToParent,
-                loopExecutor.Scheduler); 
+                loopExecutor.Scheduler);
         }
 
-        private void StartLoop(CancellationTokenSource cancellation)
+        private void StartLoop()
         {
             IntPtr handle = _loop.Handle;
             try
@@ -165,14 +164,6 @@ namespace DotNetty.Transport.Libuv
             catch (Exception exc)
             {
                 _ = TerminationCompletionSource.TrySetException(exc);
-            }
-            finally
-            {
-                if (IsShuttingDown)
-                {
-                    cancellation.Cancel();
-                    cancellation.Dispose();
-                }
             }
         }
 

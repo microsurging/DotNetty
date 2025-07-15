@@ -41,7 +41,7 @@ namespace DotNetty.Common.Concurrency
         {
             _executor = executor;
         }
-
+         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void QueueTask(Task task)
         {
@@ -84,7 +84,7 @@ namespace DotNetty.Common.Concurrency
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Run() => _scheduler.TryExecuteTask(_task);
+            public void Run()=> _scheduler.TryExecuteTask(_task);
         }
     }
 }

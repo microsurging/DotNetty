@@ -155,7 +155,7 @@ namespace DotNetty.Common.Concurrency
         protected override void Run()
         {
             do
-            {
+            { 
                 IRunnable task = TakeTask();
                 if (task is object)
                 {

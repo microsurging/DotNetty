@@ -79,8 +79,8 @@ namespace DotNetty.Codecs.Rtmp
 					{
 						AudioMessage am = new AudioMessage();
 
-						byte[] data = ReadAll(payload);
-						am.AudioData=data;
+						var data = ReadAll(payload);
+						am.AudioData=data.ToArray();
 
 						if (header.Fmt == Constants.CHUNK_FMT_0)
 						{
@@ -96,9 +96,9 @@ namespace DotNetty.Codecs.Rtmp
 				case Constants.MSG_TYPE_VIDEO_MESSAGE:
 					{
 						VideoMessage vm = new VideoMessage();
-						byte[] data = ReadAll(payload);
+						var data = ReadAll(payload);
 
-						vm.VideoData= data;
+						vm.VideoData= data.ToArray();
 
 						if (header.Fmt == Constants.CHUNK_FMT_0)
 						{
@@ -133,9 +133,9 @@ namespace DotNetty.Codecs.Rtmp
 			}
 		}
 
-		private static byte[] ReadAll(IByteBuffer payload)
+		private static Memory<byte> ReadAll(IByteBuffer payload)
 		{
-			byte[] all = new byte[payload.ReadableBytes];
+			var all = new Memory<byte>(new byte[payload.ReadableBytes]);
 			payload.ReadBytes(all);
 			return all;
 		}

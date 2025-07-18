@@ -29,6 +29,7 @@
 namespace DotNetty.Common.Concurrency
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.CompilerServices;
@@ -498,7 +499,7 @@ namespace DotNetty.Common.Concurrency
 
             var isBacklogEmpty = !HasTasks && _scheduledTaskQueue.IsEmpty;
 
-            _ = _scheduledTaskQueue.TryEnqueue(task.SetId(nextTaskId));
+            _scheduledTaskQueue.TryEnqueue(task.SetId(nextTaskId));
 
             if (isBacklogEmpty)
             {

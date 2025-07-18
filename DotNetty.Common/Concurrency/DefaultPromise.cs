@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetty.Common.Utilities;
@@ -151,5 +152,15 @@ namespace DotNetty.Common.Concurrency
         public override string ToString() => "TaskCompletionSource[status: " + Task.Status.ToString() + "]";
 
         public IPromise Unvoid() => this;
+
+        public Exception Execption()
+        {
+           return Task.Exception.InnerException;
+        }
+
+        public void Dispose()
+        {
+            Task.Dispose();
+        }
     }
 }

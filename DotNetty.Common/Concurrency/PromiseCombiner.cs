@@ -151,7 +151,7 @@ namespace DotNetty.Common.Concurrency
             }
         }
 
-        private async void OperationComplete(Task future)
+        private  async void OperationComplete(Task future)
         {
             await future;
             Debug.Assert(_executor.InEventLoop);

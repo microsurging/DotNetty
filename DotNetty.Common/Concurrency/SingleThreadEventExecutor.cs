@@ -185,7 +185,9 @@ namespace DotNetty.Common.Concurrency
             _shutdownHooks = new HashSet<Action>();
             _terminationCompletionSource = NewPromise();
             _threadLock = new CountdownEvent(1);
-            _taskScheduler = new ExecutorTaskScheduler(this);
+            // _taskScheduler = new ExecutorTaskScheduler(this);
+            //High CPU consumption tasks, opening new threads to run long-running tasks, avoiding exhaustion of thread pool resources
+            _taskScheduler = new AloneExecutorTaskScheduler(this, 1);
         }
 
         #endregion
@@ -268,10 +270,9 @@ namespace DotNetty.Common.Concurrency
         private readonly XParameterizedThreadStart _loopAction;
         private void Loop(object s)
         {
-            SetCurrentExecutor(this);
-            var cancellation = new CancellationTokenSource();
+            SetCurrentExecutor(this); 
             //high CPU consumption tasks, running RunAllTasks in a dead loop, set TaskCreationOptions.LongRunning to avoid running out of thread pool resources. ‌‌
-            _ = Task.Factory.StartNew( _loopCoreAciton, CancellationToken.None, TaskCreationOptions.LongRunning, _taskScheduler);
+            _ = Task.Factory.StartNew( _loopCoreAciton,CancellationToken.None, TaskCreationOptions.RunContinuationsAsynchronously, _taskScheduler);
             //Loop processing is too fast and generates a large number of loopCoreAciton task schedulers.
             //Using ManualResetEventSlim to process it is too late to wait, Using threadLock, LoopCore task schedulers will be released after execution
         }
@@ -482,7 +483,7 @@ namespace DotNetty.Common.Concurrency
                 if (!taskQueue.TryEnqueue(scheduledTask))
                 {
                     // No space left in the task queue add it back to the scheduledTaskQueue so we pick it up again.
-                    _ = _scheduledTaskQueue.TryEnqueue(scheduledTask);
+                    _= _scheduledTaskQueue.TryEnqueue(scheduledTask);
                     return false;
                 }
                 scheduledTask = PollScheduledTask(nanoTime);
@@ -671,7 +672,6 @@ namespace DotNetty.Common.Concurrency
             }
 
             OnBeginRunningAllTasks();
-             
             long runTasks = 0;
             long executionTime;
             while (true)

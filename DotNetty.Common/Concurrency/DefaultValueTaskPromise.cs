@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 
 namespace DotNetty.Common.Concurrency
 {
@@ -44,8 +45,6 @@ namespace DotNetty.Common.Concurrency
             _token= cancellationToken;
         }
 
-
-
         public ValueTask ValueTask
         {
             [MethodImpl(InlineMethod.AggressiveOptimization)]
@@ -70,6 +69,15 @@ namespace DotNetty.Common.Concurrency
             return _tcs.TrySetResult();
 #else
             return _tcs.SetResult(0);
+#endif
+        }
+
+        public virtual Exception Execption()
+        {
+#if NET
+            return _tcs.GetException(_tcs.Version).SourceException;;
+#else
+            return _tcs.GetException(_tcs.Version).SourceException;
 #endif
         }
 
@@ -137,6 +145,10 @@ namespace DotNetty.Common.Concurrency
         public override string ToString() => "TaskCompletionSource[status: " + ValueTask.AsTask().Status.ToString() + "]";
 
         public IPromise Unvoid() => this;
-         
+
+        public void Dispose()
+        {
+            _tcs.Reset();
+        }
     }
 }

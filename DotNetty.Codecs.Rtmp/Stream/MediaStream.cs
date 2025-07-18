@@ -304,16 +304,25 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		{
 			foreach (var item in _subscribers)
 			{
-				if (item.Value.IsActive)
+				try
 				{
-					await item.Value.WriteAndFlushAsync(msg);
+					if (item.Value.IsActive)
+					{
+						await item.Value.WriteAndFlushAsync(msg);
+					}
+					else
+					{
+						_subscribers.Remove(item.Key, out IChannel channel);
+						if (channel != null)
+							await channel.CloseAsync();
+					}
 				}
-				else
+				catch
 				{
-					_subscribers.Remove(item.Key, out IChannel channel);
-					if (channel != null)
-						await channel.CloseAsync();
-				}
+                    _subscribers.Remove(item.Key, out IChannel channel);
+                    if (channel != null)
+                        await channel.CloseAsync();
+                }
 			}
 
 			if (_httpFLvSubscribers.Count > 0)

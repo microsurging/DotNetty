@@ -26,13 +26,12 @@
  * Licensed under the MIT license. See LICENSE file in the project root for full license information.
  */
 
+using DotNetty.Common.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using DotNetty.Common.Utilities;
 
 namespace DotNetty.Common.Concurrency
 {

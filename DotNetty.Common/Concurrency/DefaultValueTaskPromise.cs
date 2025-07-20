@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Linq;
-using System.Runtime.ExceptionServices;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotNetty.Common.Concurrency
 {
@@ -142,7 +140,7 @@ namespace DotNetty.Common.Concurrency
             return !IsCompleted;
         }
 
-        public override string ToString() => "TaskCompletionSource[status: " + ValueTask.AsTask().Status.ToString() + "]";
+        public override string ToString() => "TaskCompletionSource[status: " + _tcs.GetStatus(_tcs.Version).ToString() + "]";
 
         public IPromise Unvoid() => this;
 

@@ -151,7 +151,7 @@ namespace DotNetty.Common.Concurrency
             }
         }
 
-        private async void OperationComplete(Task future)
+        private   async void OperationComplete(Task future)
         {
             try
             {
@@ -169,7 +169,7 @@ namespace DotNetty.Common.Concurrency
             finally
             {
                 if (0u >= (uint)(_doneCount - _expectedCount) && _aggregatePromise is object)
-                { 
+                {
                     _ = TryPromise();
                 }
                 future.Dispose();

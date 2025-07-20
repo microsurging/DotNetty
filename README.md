@@ -1,5 +1,8 @@
 # DotNetty Project
+[![Available on NuGet https://www.nuget.org/packages?q=NioDotNetty](https://img.shields.io/nuget/v/NioDotNetty.Common.svg?style=flat-square)](https://www.nuget.org/packages?q=NioDotNetty)
+
 [DotNetty](https://github.com/Azure/DotNetty) is a port of [Netty](https://github.com/netty/netty), This project is derived from the SpanNetty project and continues to be improved, asynchronous event-driven network application framework for rapid development of maintainable high performance protocol servers & clients.
+
 ## Use
 Default TaskScheduler
 ``` 

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotNetty.Codecs.Rtmp.Stream
@@ -29,7 +30,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		private bool _flvHeadAndMetadataWritten = false;
 		protected readonly ConcurrentDictionary<string, IChannel> _subscribers;
 		protected readonly ConcurrentDictionary<string, IChannel> _httpFLvSubscribers;
-
+		private int _lock;
 		public Dictionary<String, Object> Metadata { get; set; }
 
 		public IChannel Publisher { get; set; }
@@ -40,11 +41,11 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			_httpFLvSubscribers = new ConcurrentDictionary<string, IChannel>();
 			_content = new List<AbstractRtmpMediaMessage>();
 			_streamName = streamName;
-            if (RtmpConfig.Instance !=null &&  RtmpConfig.Instance.IsSaveFlvFile)
-			CreateFileStream();
+			if (RtmpConfig.Instance != null && RtmpConfig.Instance.IsSaveFlvFile)
+				CreateFileStream();
 		}
 
-		public void AddContent(AbstractRtmpMediaMessage msg,bool isClient=false)
+		public void AddContent(AbstractRtmpMediaMessage msg, bool isClient = false)
 		{
 			if (!isClient)
 			{
@@ -67,8 +68,8 @@ namespace DotNetty.Codecs.Rtmp.Stream
 
 				if (vm.IsH264KeyFrame())
 				{
-					_content.Clear();
-                }
+					Lock(()=>_content.Clear()); 
+				}
 			}
 
 			if (msg is AudioMessage)
@@ -81,9 +82,24 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			}
 
 			_content.Add(msg);
-			if (RtmpConfig.Instance!=null && RtmpConfig.Instance.IsSaveFlvFile)
+			if (RtmpConfig.Instance != null && RtmpConfig.Instance.IsSaveFlvFile)
 				WriteFlv(msg);
 			BroadCastToSubscribers(msg);
+		}
+
+		private int Lock(Action action)
+		{
+			while (true)
+			{
+				if (Interlocked.Exchange(ref _lock, 1) != 0)
+				{
+					default(SpinWait).SpinOnce();
+					continue;
+				}
+				action();
+                Interlocked.Exchange(ref _lock, 0);
+				return _lock;
+			}
 		}
 
 		private void HandleNonObsStream(AbstractRtmpMediaMessage msg)
@@ -161,7 +177,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			buffer.WriteBytes(data);
 			buffer.WriteInt(data.Length + 11); // prevousTagSize
 
-            Memory<byte> r = new Memory<byte>(new byte[buffer.ReadableBytes]);
+			Memory<byte> r = new Memory<byte>(new byte[buffer.ReadableBytes]);
 			buffer.ReadBytes(r);
 			return r;
 		}
@@ -180,14 +196,14 @@ namespace DotNetty.Codecs.Rtmp.Stream
 					WriteFlvHeaderAndMetadata();
 					_flvHeadAndMetadataWritten = true;
 				}
-                Memory<byte> encodeMediaAsFlv = EncodeMediaAsFlvTagAndPrevTagSize(msg);
+				Memory<byte> encodeMediaAsFlv = EncodeMediaAsFlvTagAndPrevTagSize(msg);
 				_flvOutput.Write(encodeMediaAsFlv.Span);
 				_flvOutput.Flush();
 
 			}
 			catch (IOException e)
 			{
-				logger.Error($"stream:{_streamName} writting flv file failed",  e);
+				logger.Error($"stream:{_streamName} writting flv file failed", e);
 			}
 		}
 
@@ -214,7 +230,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			buf.WriteBytes(encodeMetaData);
 			buf.WriteInt(readableBytes + 11);
 
-            Memory<byte> result = new Memory<byte>(new byte[buf.ReadableBytes]);
+			Memory<byte> result = new Memory<byte>(new byte[buf.ReadableBytes]);
 			buf.ReadBytes(result);
 
 			return result;
@@ -223,7 +239,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 
 		private void WriteFlvHeaderAndMetadata()
 		{
-            Memory<byte> encodeFlvHeaderAndMetadata = EncodeFlvHeaderAndMetadata();
+			Memory<byte> encodeFlvHeaderAndMetadata = EncodeFlvHeaderAndMetadata();
 			_flvOutput.Write(encodeFlvHeaderAndMetadata.Span);
 			_flvOutput.Flush();
 
@@ -242,7 +258,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 
 		private void CreateFileStream()
 		{
-			var path =Path.Combine( RtmpConfig.Instance.SaveFlvFilePath, _streamName.App + "_" + _streamName.Name);
+			var path = Path.Combine(RtmpConfig.Instance.SaveFlvFilePath, _streamName.App + "_" + _streamName.Name);
 			try
 			{
 				var fos = new FileStream(path, FileMode.OpenOrCreate);
@@ -260,15 +276,18 @@ namespace DotNetty.Codecs.Rtmp.Stream
 			_subscribers.GetOrAdd(channel.RemoteAddress.ToString(), p => channel);
 			_avcDecoderConfigurationRecord.Timestamp = _content[0].Timestamp;
 			await channel.WriteAndFlushAsync(_avcDecoderConfigurationRecord);
-
-			foreach (var msg in _content)
-			{
-				await channel.WriteAndFlushAsync(msg);
-			}
+			Lock(async () => {
+				foreach (var msg in _content)
+				{
+					await channel.WriteAndFlushAsync(msg);
+				}
+			
+			});
 		}
 
 		public async Task AddHttpFlvSubscriber(IChannel channel)
-		{	try
+		{
+			try
 			{
 				logger.Info($"http flv subscriber : {channel.RemoteAddress} is added to stream :{_streamName}");
 				_httpFLvSubscribers.GetOrAdd(channel.RemoteAddress.ToString(), p => channel); ;
@@ -319,15 +338,15 @@ namespace DotNetty.Codecs.Rtmp.Stream
 				}
 				catch
 				{
-                    _subscribers.Remove(item.Key, out IChannel channel);
-                    if (channel != null)
-                        await channel.CloseAsync();
-                }
+					_subscribers.Remove(item.Key, out IChannel channel);
+					if (channel != null)
+						await channel.CloseAsync();
+				}
 			}
 
 			if (_httpFLvSubscribers.Count > 0)
 			{
-                Memory<byte> encoded = EncodeMediaAsFlvTagAndPrevTagSize(msg);
+				Memory<byte> encoded = EncodeMediaAsFlvTagAndPrevTagSize(msg);
 
 				foreach (var item in _httpFLvSubscribers)
 				{
@@ -341,16 +360,16 @@ namespace DotNetty.Codecs.Rtmp.Stream
 						else
 						{
 							_httpFLvSubscribers.Remove(item.Key, out IChannel channel);
-                            if (channel != null) await channel.CloseAsync();
+							if (channel != null) await channel.CloseAsync();
 
-                        }
+						}
 					}
-					catch 
+					catch
 					{
-                        _httpFLvSubscribers.Remove(item.Key, out IChannel channel);
-                         if(channel!=null) 
+						_httpFLvSubscribers.Remove(item.Key, out IChannel channel);
+						if (channel != null)
 							await channel.CloseAsync();
-                    }
+					}
 
 				}
 			}
@@ -360,7 +379,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 		{
 			try
 			{
-				if (RtmpConfig.Instance!=null && RtmpConfig.Instance.IsSaveFlvFile &&  _flvOutput != null)
+				if (RtmpConfig.Instance != null && RtmpConfig.Instance.IsSaveFlvFile && _flvOutput != null)
 				{
 					try
 					{

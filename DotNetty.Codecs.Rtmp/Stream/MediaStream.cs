@@ -58,30 +58,33 @@ namespace DotNetty.Codecs.Rtmp.Stream
 					HandleNonObsStream(msg);
 				}
 			}
-			if (msg is VideoMessage)
+			Lock(() =>
 			{
-				VideoMessage vm = (VideoMessage)msg;
-				if (vm.IsAVCDecoderConfigurationRecord())
+
+				if (msg is VideoMessage)
 				{
-					_avcDecoderConfigurationRecord = vm;
+					VideoMessage vm = (VideoMessage)msg;
+					if (vm.IsAVCDecoderConfigurationRecord())
+					{
+						_avcDecoderConfigurationRecord = vm;
+					}
+
+					if (vm.IsH264KeyFrame())
+					{
+						_content.Clear();
+					}
 				}
 
-				if (vm.IsH264KeyFrame())
+				if (msg is AudioMessage)
 				{
-					Lock(()=>_content.Clear()); 
+					AudioMessage am = (AudioMessage)msg;
+					if (am.IsAACAudioSpecificConfig())
+					{
+						_aacAudioSpecificConfig = am;
+					}
 				}
-			}
-
-			if (msg is AudioMessage)
-			{
-				AudioMessage am = (AudioMessage)msg;
-				if (am.IsAACAudioSpecificConfig())
-				{
-					_aacAudioSpecificConfig = am;
-				}
-			}
-
-			_content.Add(msg);
+				_content.Add(msg);
+			});
 			if (RtmpConfig.Instance != null && RtmpConfig.Instance.IsSaveFlvFile)
 				WriteFlv(msg);
 			BroadCastToSubscribers(msg);
@@ -280,8 +283,7 @@ namespace DotNetty.Codecs.Rtmp.Stream
 				foreach (var msg in _content)
 				{
 					await channel.WriteAndFlushAsync(msg);
-				}
-			
+				} 
 			});
 		}
 

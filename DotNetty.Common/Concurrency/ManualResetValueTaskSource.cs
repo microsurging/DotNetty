@@ -29,13 +29,13 @@ namespace DotNetty.Common.Concurrency
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ManualResetValueTaskSource(ContinuationOptions options = ContinuationOptions.None)
         {
-            _logic = new ManualResetValueTaskSourceLogic<T>(this, options,null);
+            _logic = new ManualResetValueTaskSourceLogic<T>(this, options, null);
             _cancellationCallback = SetCanceled;
         }
 
         public ManualResetValueTaskSource(object state, ContinuationOptions options = ContinuationOptions.None)
         {
-            _logic = new ManualResetValueTaskSourceLogic<T>(this, options,state);
+            _logic = new ManualResetValueTaskSourceLogic<T>(this, options, state);
             _cancellationCallback = SetCanceled;
         }
 
@@ -58,6 +58,21 @@ namespace DotNetty.Common.Concurrency
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TrySetResult(T result)
+        {
+            lock (_cancellationCallback)
+            {
+                if (_logic.Completed)
+                {
+                    return false;
+                }
+
+                _logic.TrySetResult(result);
+                return true;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetException(Exception error)
         {
             if (Monitor.TryEnter(_cancellationCallback))
@@ -69,6 +84,22 @@ namespace DotNetty.Common.Concurrency
                 }
 
                 _logic.SetException(error);
+                Monitor.Exit(_cancellationCallback);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrySetException(Exception error)
+        {
+            if (Monitor.TryEnter(_cancellationCallback))
+            {
+                if (_logic.Completed)
+                {
+                    Monitor.Exit(_cancellationCallback);
+                    return;
+                }
+
+                _logic.TrySetException(error);
                 Monitor.Exit(_cancellationCallback);
             }
         }
@@ -123,8 +154,8 @@ namespace DotNetty.Common.Concurrency
         private TResult _result;
         private ExceptionDispatchInfo _error;
         private CancellationTokenRegistration? _registration;
-         
-        public ManualResetValueTaskSourceLogic(IStrongBox<ManualResetValueTaskSourceLogic<TResult>> parent, ContinuationOptions options,object state)
+
+        public ManualResetValueTaskSourceLogic(IStrongBox<ManualResetValueTaskSourceLogic<TResult>> parent, ContinuationOptions options, object state)
         {
             _parent = parent ?? throw new ArgumentNullException(nameof(parent));
             _options = options;
@@ -133,7 +164,7 @@ namespace DotNetty.Common.Concurrency
             _capturedContext = null;
             _executionContext = null;
             _completed = state != null;
-            _result =state==null? default(TResult): (TResult)state;
+            _result = state == null ? default(TResult) : (TResult)state;
             _error = null;
             Version = 0;
             _registration = null;
@@ -146,14 +177,14 @@ namespace DotNetty.Common.Concurrency
         private void ValidateToken(short token)
         {
             if (token != Version)
-            { 
+            {
                 throw new InvalidOperationException();
             }
         }
 
         public ValueTaskSourceStatus GetStatus(short token)
         {
-           // ValidateToken(token);
+            // ValidateToken(token);
 
             return
                 !_completed ? ValueTaskSourceStatus.Pending :
@@ -164,7 +195,7 @@ namespace DotNetty.Common.Concurrency
 
         public TResult GetResult(short token)
         {
-           // ValidateToken(token);
+            // ValidateToken(token);
 
             if (!_completed)
             {
@@ -182,9 +213,9 @@ namespace DotNetty.Common.Concurrency
         public ExceptionDispatchInfo GetException(short token)
         {
             // ValidateToken(token);
-              
+
             ExceptionDispatchInfo error = _error;
-            Reset(); 
+            Reset();
             return error;
         }
 
@@ -265,10 +296,18 @@ namespace DotNetty.Common.Concurrency
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetResult(TResult result)
         {
             _result = result;
             SignalCompletion();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrySetResult(TResult result)
+        {
+            _result = result;
+            SignalCompletion(true);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -278,7 +317,14 @@ namespace DotNetty.Common.Concurrency
             SignalCompletion();
         }
 
-        private void SignalCompletion()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrySetException(Exception error)
+        {
+            _error = ExceptionDispatchInfo.Capture(error);
+            SignalCompletion(true);
+        }
+
+        private void SignalCompletion(bool isTry = false)
         {
             if (_completed)
             {
@@ -298,12 +344,12 @@ namespace DotNetty.Common.Concurrency
                 }
                 else
                 {
-                    InvokeContinuation();
+                    InvokeContinuation(isTry);
                 }
             }
         }
 
-        private void InvokeContinuation()
+        private void InvokeContinuation(bool isTry = false)
         {
             object cc = _capturedContext;
             _capturedContext = null;
@@ -325,7 +371,12 @@ namespace DotNetty.Common.Concurrency
                         }
                         else
                         {
-                            ThreadPool.UnsafeQueueUserWorkItem(s => c(s),  _continuationState);
+
+                            //the state is wait. If an exception occurs and no result is returned, ArgumentOutOfRangeException will be thrown
+                            if (isTry)
+                                ThreadPool.UnsafeQueueUserWorkItem(s => { try { c(s); } catch (ArgumentOutOfRangeException) { } }, _continuationState);
+                            else
+                                ThreadPool.UnsafeQueueUserWorkItem(s => c(s), _continuationState);
                         }
                     }
                     else

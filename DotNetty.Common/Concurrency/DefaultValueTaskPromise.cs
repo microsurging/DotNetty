@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DotNetty.Common.Concurrency
 {
-    public class DefaultValueTaskPromise: IValueTaskPromise
+    public class DefaultValueTaskPromise : IValueTaskPromise
     {
         private readonly CancellationToken _token;
 #if NET
@@ -40,7 +40,7 @@ namespace DotNetty.Common.Concurrency
 
         public DefaultValueTaskPromise(CancellationToken cancellationToken)
         {
-            _token= cancellationToken;
+            _token = cancellationToken;
         }
 
         public ValueTask ValueTask
@@ -59,14 +59,14 @@ namespace DotNetty.Common.Concurrency
 
         public bool IsCanceled => ValueTask.IsCanceled;
 
-       public  Task  Task => ValueTask.AsTask();
+        public Task Task => ValueTask.AsTask();
 
         public virtual bool TryComplete()
         {
 #if NET
-            return _tcs.TrySetResult();
+            return _tcs.TrySetResult(0);
 #else
-            return _tcs.SetResult(0);
+            return _tcs.TrySetResult(0);
 #endif
         }
 
@@ -111,7 +111,7 @@ namespace DotNetty.Common.Concurrency
         public virtual bool TrySetCanceled()
         {
             if (SharedConstants.False < (uint)Volatile.Read(ref v_uncancellable)) { return false; }
-              _tcs.SetCanceled();
+            _tcs.SetCanceled();
             return true;
         }
 
@@ -121,13 +121,13 @@ namespace DotNetty.Common.Concurrency
             {
                 return TrySetException(aggregateException.InnerExceptions);
             }
-              _tcs.SetException(exception);
+            _tcs.TrySetException(exception);
             return true;
         }
 
         public virtual bool TrySetException(IEnumerable<Exception> exceptions)
         {
-              _tcs.SetException(exceptions.FirstOrDefault());
+            _tcs.TrySetException(exceptions.FirstOrDefault());
             return true;
         }
 

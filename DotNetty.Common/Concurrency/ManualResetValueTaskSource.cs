@@ -106,6 +106,8 @@ namespace DotNetty.Common.Concurrency
 
         public void SetCanceled() => SetException(new TaskCanceledException());
 
+        public void TrySetCanceled() => TrySetException(new TaskCanceledException());
+
         public T GetResult(short token) => _logic.GetResult(token);
 
         public ExceptionDispatchInfo GetException(short token) => _logic.GetException(token);

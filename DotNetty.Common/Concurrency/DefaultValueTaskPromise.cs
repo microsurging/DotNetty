@@ -111,7 +111,7 @@ namespace DotNetty.Common.Concurrency
         public virtual bool TrySetCanceled()
         {
             if (SharedConstants.False < (uint)Volatile.Read(ref v_uncancellable)) { return false; }
-            _tcs.SetCanceled();
+            _tcs.TrySetCanceled();
             return true;
         }
 
